@@ -8,10 +8,10 @@ ENV DEBIAN_FRONTEND=noninteractive \
     HF_HOME=/models/.cache/huggingface \
     HF_HUB_ENABLE_HF_TRANSFER=0 \
     VIRTUAL_ENV=/opt/venv \
-    PATH="/opt/venv/bin:$PATH"
+    PATH="/opt/venv/bin:$PATH" \
+    NVIDIA_VISIBLE_DEVICES=all \
+    NVIDIA_DRIVER_CAPABILITIES=compute,utility
 
-ENV CUDA_STUBS=/usr/local/cuda/targets/x86_64-linux/lib/stubs
-RUN ln -sf ${CUDA_STUBS}/libcuda.so /usr/lib/x86_64-linux-gnu/libcuda.so.1
 EXPOSE 8080
 
 RUN apt-get update && \
@@ -24,8 +24,13 @@ RUN apt-get update && \
 RUN python3.12 -m venv $VIRTUAL_ENV && \
     $VIRTUAL_ENV/bin/pip install --upgrade pip
 
-RUN CMAKE_ARGS="-DGGML_CUDA=on -DGGML_BLAS=ON -DGGML_BLAS_VENDOR=OpenBLAS" pip install llama-cpp-python
-RUN pip install --no-cache-dir runpod
+RUN set -eux; \
+    STUBS="/usr/local/cuda/targets/x86_64-linux/lib/stubs"; \
+    CMAKE_ARGS="-DGGML_CUDA=on -DGGML_BLAS=ON -DGGML_BLAS_VENDOR=OpenBLAS -DCMAKE_CUDA_ARCHITECTURES=${CUDAARCHS}"; \
+    ln -sf "${STUBS}/libcuda.so" /usr/lib/x86_64-linux-gnu/libcuda.so; \
+    pip install --no-cache-dir --upgrade pip && \
+    CMAKE_ARGS="$CMAKE_ARGS" FORCE_CMAKE=1 pip install --no-cache-dir llama-cpp-python runpod; \
+    rm -f /usr/lib/x86_64-linux-gnu/libcuda.so
 
 COPY handle.py test_input.json start.sh /
 
