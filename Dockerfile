@@ -1,7 +1,6 @@
 FROM nvidia/cuda:12.8.1-cudnn-devel-ubuntu24.04
 
 ARG CUDAARCHS="100;90;89;86;80;75"
-ARG APP_DIR=/app
 ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
@@ -28,11 +27,7 @@ RUN python3.12 -m venv $VIRTUAL_ENV && \
 RUN CMAKE_ARGS="-DGGML_CUDA=on -DGGML_BLAS=ON -DGGML_BLAS_VENDOR=OpenBLAS" pip install llama-cpp-python
 RUN pip install --no-cache-dir runpod
 
-WORKDIR ${APP_DIR}
+COPY handle.py test_input.json start.sh /
 
-COPY handle.py ${APP_DIR}/handle.py
-COPY test_input.json ${APP_DIR}/test_input.json
-COPY start.sh ${APP_DIR}/start.sh
-
-RUN chmod +x ${APP_DIR}/start.sh
-ENTRYPOINT ${APP_DIR}/start.sh
+RUN chmod +x /start.sh
+ENTRYPOINT /start.sh
