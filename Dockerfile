@@ -18,21 +18,19 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
       python3.12 python3.12-venv python3-pip python3.12-dev \
       git ca-certificates wget libopenblas-dev \
-      build-essential pkg-config cmake ninja-build && \
+      build-essential pkg-config cmake ninja-build cuda-compat-12-8 && \
     rm -rf /var/lib/apt/lists/*
 
 RUN python3.12 -m venv $VIRTUAL_ENV && \
     $VIRTUAL_ENV/bin/pip install --upgrade pip
 
 RUN set -eux; \
-    STUBS="/usr/local/cuda/targets/x86_64-linux/lib/stubs"; \
-    CMAKE_ARGS="-DGGML_CUDA=on -DGGML_BLAS=ON -DGGML_BLAS_VENDOR=OpenBLAS -DCMAKE_CUDA_ARCHITECTURES=${CUDAARCHS}"; \
-    ln -sf "${STUBS}/libcuda.so" /usr/lib/x86_64-linux-gnu/libcuda.so; \
+    export LD_LIBRARY_PATH="/usr/local/cuda/compat:${LD_LIBRARY_PATH:-}"; \
+    export LIBRARY_PATH="/usr/local/cuda/compat:${LIBRARY_PATH:-}"; \
+    export CMAKE_ARGS="-DGGML_CUDA=on -DGGML_BLAS=ON -DGGML_BLAS_VENDOR=OpenBLAS -DCMAKE_CUDA_ARCHITECTURES=${CUDAARCHS}"; \
     pip install --no-cache-dir --upgrade pip && \
-    CMAKE_ARGS="$CMAKE_ARGS" FORCE_CMAKE=1 pip install --no-cache-dir llama-cpp-python runpod; \
-    rm -f /usr/lib/x86_64-linux-gnu/libcuda.so
+    FORCE_CMAKE=1 pip install --no-cache-dir llama-cpp-python runpod;
 
 COPY handle.py test_input.json start.sh /
-
 RUN chmod +x /start.sh
 ENTRYPOINT /start.sh
