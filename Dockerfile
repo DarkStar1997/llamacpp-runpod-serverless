@@ -34,5 +34,5 @@ COPY handle.py ${APP_DIR}/handle.py
 COPY test_input.json ${APP_DIR}/test_input.json
 COPY start.sh ${APP_DIR}/start.sh
 
-RUN chmod +x start.sh
-ENTRYPOINT start.sh
+RUN chmod +x ${APP_DIR}/start.sh
+ENTRYPOINT ${APP_DIR}/start.sh
