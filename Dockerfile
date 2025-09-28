@@ -1,6 +1,5 @@
-FROM nvidia/cuda:12.8.1-cudnn-devel-ubuntu24.04
+FROM pytorch/pytorch:2.8.0-cuda12.8-cudnn9-devel
 
-ARG CUDAARCHS="100;90;89;86;80;75"
 ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
@@ -18,16 +17,13 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
       python3.12 python3.12-venv python3-pip python3.12-dev \
       git ca-certificates wget libopenblas-dev \
-      build-essential pkg-config cmake ninja-build cuda-compat-12-8 && \
+      build-essential pkg-config cmake ninja-build && \
     rm -rf /var/lib/apt/lists/*
 
 RUN python3.12 -m venv $VIRTUAL_ENV && \
     $VIRTUAL_ENV/bin/pip install --upgrade pip
 
-RUN set -eux; \
-    export LD_LIBRARY_PATH="/usr/local/cuda/compat:${LD_LIBRARY_PATH:-}"; \
-    export LIBRARY_PATH="/usr/local/cuda/compat:${LIBRARY_PATH:-}"; \
-    export CMAKE_ARGS="-DGGML_CUDA=on -DGGML_BLAS=ON -DGGML_BLAS_VENDOR=OpenBLAS -DCMAKE_CUDA_ARCHITECTURES=${CUDAARCHS}"; \
+RUN export CMAKE_ARGS="-DGGML_CUDA=on -DGGML_BLAS=ON -DGGML_BLAS_VENDOR=OpenBLAS -DCMAKE_CUDA_ARCHITECTURES=${CUDAARCHS}"; \
     pip install --no-cache-dir --upgrade pip && \
     FORCE_CMAKE=1 pip install --no-cache-dir llama-cpp-python runpod;
 
