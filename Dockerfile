@@ -32,6 +32,7 @@ WORKDIR ${APP_DIR}
 
 COPY handle.py ${APP_DIR}/handle.py
 COPY test_input.json ${APP_DIR}/test_input.json
+COPY start.sh ${APP_DIR}/start.sh
 
-CMD ["python", "-u", "handle.py"]
-
+RUN chmod +x start.sh
+ENTRYPOINT start.sh
