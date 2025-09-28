@@ -1,9 +1,7 @@
 FROM nvidia/cuda:12.8.1-cudnn-devel-ubuntu24.04
 
-
 ARG CUDAARCHS="100;90;89;86;80;75"
 ARG APP_DIR=/app
-ARG MODEL_ROOT=/models
 ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
@@ -28,16 +26,9 @@ RUN python3.12 -m venv $VIRTUAL_ENV && \
     $VIRTUAL_ENV/bin/pip install --upgrade pip
 
 RUN CMAKE_ARGS="-DGGML_CUDA=on -DGGML_BLAS=ON -DGGML_BLAS_VENDOR=OpenBLAS" pip install llama-cpp-python
-RUN mkdir -p $MODEL_ROOT
 RUN pip install --no-cache-dir runpod
 
 WORKDIR ${APP_DIR}
-
-RUN wget https://huggingface.co/unsloth/gemma-3-270m-it-qat-GGUF/resolve/main/gemma-3-270m-it-qat-UD-Q8_K_XL.gguf
-RUN wget https://huggingface.co/unsloth/DeepSeek-R1-0528-Qwen3-8B-GGUF/resolve/main/DeepSeek-R1-0528-Qwen3-8B-Q8_0.gguf
-RUN wget https://huggingface.co/unsloth/gemma-3-27b-it-qat-GGUF/resolve/main/gemma-3-27b-it-qat-UD-Q8_K_XL.gguf
-RUN wget https://huggingface.co/unsloth/gpt-oss-20b-GGUF/resolve/main/gpt-oss-20b-Q8_0.gguf
-RUN wget https://huggingface.co/ggml-org/Qwen3-30B-A3B-Instruct-2507-Q8_0-GGUF/resolve/main/qwen3-30b-a3b-instruct-2507-q8_0.gguf
 
 COPY handle.py ${APP_DIR}/handle.py
 COPY test_input.json ${APP_DIR}/test_input.json
